@@ -1,26 +1,18 @@
 import pandas as pd
 import numpy as np
-#import standard scaler
 from sklearn.preprocessing import StandardScaler
-#import PCA
 from sklearn.decomposition import PCA
-#import KMeans
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
-
 
 def read_data(path):
     df = pd.read_csv(path)
     df.replace('No Data', np.nan, inplace=True)
-    df['Date'] = pd.to_datetime(df['Date'])  # Ensure Date parsing is needed for your analysis
-    print(df.shape)
-    #drop na
+    df['Date'] = pd.to_datetime(df['Date'])
     df.dropna(inplace=True)
-    print(df.shape)
-    #convert Frequency, Voltage, Ampere, Pressure_Discharge, Pressure_Intake, Temp_Intake, Temp_Motor, Vibration_X, Vibration_Y to numeric
     numeric_columns = ['Frequency', 'Voltage', 'Ampere', 'Pressure_Discharge', 'Pressure_Intake', 'Temp_Intake', 'Temp_Motor', 'Vibration_X', 'Vibration_Y']
-    df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric)
-    print(df.isna().sum())
+    df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric, errors='coerce')
+    df.dropna(inplace=True)
     return df
 
 def scale_data(df, num_columns):
@@ -28,43 +20,68 @@ def scale_data(df, num_columns):
     df_scaled = scaler.fit_transform(df[num_columns])
     return df_scaled
 
-def apply_pca(df_scaled, df):
-    pca = PCA(n_components=2)  # Adjust the number of components as needed
+def apply_pca(df_scaled, df, numeric_columns):
+    pca = PCA(n_components=2)
     principal_components = pca.fit_transform(df_scaled)
     print("Explained Variance Ratio:", pca.explained_variance_ratio_)
+
     df_pca = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2'], index=df.index)
-    
-    # Apply K-means clustering
-    kmeans = KMeans(n_clusters=3)  # Adjust the number of clusters as needed
+    kmeans = KMeans(n_clusters=3)
     kmeans.fit(df_pca)
     df_pca['Cluster'] = kmeans.labels_
-    
-    # Combine the PCA results and cluster labels with the original data
     df_combined = pd.concat([df, df_pca], axis=1)
+
+    # Create a biplot
+    plt.figure(figsize=(10, 8))
+    ax = plt.subplot(111)
+
+    # Scatter plot for clusters
+    colors = ['blue', 'red', 'green']  # Define cluster colors
+    cluster_labels = list(range(0, 3))
+    for color, label in zip(colors, cluster_labels):
+        indices = df_pca['Cluster'] == label
+        plt.scatter(df_pca.loc[indices, 'PC1'], df_pca.loc[indices, 'PC2'], c=color, label=f'Cluster {label}', alpha=0.5)
     
-    # Plotting
-    plt.figure(figsize=(8, 6))
-    colors = ['red', 'green', 'blue']
-    for i in range(3):
-        plt.scatter(df_combined.loc[df_combined['Cluster'] == i, 'PC1'],
-                    df_combined.loc[df_combined['Cluster'] == i, 'PC2'],
-                    s=50, c=colors[i], label=f'Cluster {i}')
-    plt.title('Clusters of ESP Data on PCA Components')
-    plt.xlabel('PC1')
-    plt.ylabel('PC2')
-    plt.legend()
+    # Plot arrows and labels for each feature
+    vectors = pca.components_.T * np.sqrt(pca.explained_variance_)
+    for i, col in enumerate(numeric_columns):
+        plt.arrow(0, 0, vectors[i, 0], vectors[i, 1], color='black', alpha=0.9, width=0.01)
+        plt.text(vectors[i, 0] * 1.2, vectors[i, 1] * 1.2, col, color='black', ha='center', va='center')
+
+    plt.xlabel('PC1 ({}% expl.var)'.format(round(pca.explained_variance_ratio_[0]*100, 1)))
+    plt.ylabel('PC2 ({}% expl.var)'.format(round(pca.explained_variance_ratio_[1]*100, 1)))
+    plt.title('Biplot with PCA')
     plt.grid(True)
+    plt.axis('equal')
+    plt.legend()
     plt.show()
 
     return df_combined
+
+def cluster_averages(df_combined):
+    cluster_means = df_combined.groupby('Cluster').mean()
+    return cluster_means
+
+def plot_cluster_averages(cluster_means):
+    cluster_means_transposed = cluster_means.transpose()
+    cluster_means_transposed.plot(kind='bar', figsize=(14, 7))
+    plt.title('Average Values of Features by Cluster')
+    plt.xlabel('Features')
+    plt.ylabel('Average Value')
+    plt.legend(title='Cluster')
+    plt.grid(True)
+    plt.show()
 
 def main():
     path = '/Users/rianrachmanto/pypro/data/data_esp_edit02.csv'
     df = read_data(path)
     numeric_columns = ['Frequency', 'Voltage', 'Ampere', 'Pressure_Discharge', 'Pressure_Intake', 'Temp_Intake', 'Temp_Motor', 'Vibration_X', 'Vibration_Y']
     df_scaled = scale_data(df, numeric_columns)
-    df_final = apply_pca(df_scaled, df)
-    print(df_final.head())
+    df_combined = apply_pca(df_scaled, df, numeric_columns)
+    print(df_combined.head())
+    cluster_means = cluster_averages(df_combined)
+    print(cluster_means)  # Print the mean values by cluster
+    plot_cluster_averages(cluster_means)
 
 if __name__ == '__main__':
     main()
