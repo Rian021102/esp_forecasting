@@ -26,7 +26,7 @@ def apply_pca(df_scaled, df, numeric_columns):
     print("Explained Variance Ratio:", pca.explained_variance_ratio_)
 
     df_pca = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2'], index=df.index)
-    kmeans = KMeans(n_clusters=3)
+    kmeans = KMeans(n_clusters=4)
     kmeans.fit(df_pca)
     df_pca['Cluster'] = kmeans.labels_
     df_combined = pd.concat([df, df_pca], axis=1)
