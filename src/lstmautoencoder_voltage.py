@@ -12,6 +12,7 @@ from keras.layers import LSTM, RepeatVector, TimeDistributed, Dense
 from keras.layers import Input
 import tensorflow as tf
 from keras import regularizers
+from sklearn.decomposition import PCA
 
 
 def load_data(path):
@@ -23,10 +24,19 @@ def load_data(path):
     print(df.info())
     return df
 
-def select_feat(df, well_name, feat_name):
-    # Filter the DataFrame for the given well name
-    df_feat = df[df['Well'] == well_name][['Well', 'Date', feat_name]]
+def select_feat(df,feat_name):
+    # Filter the DataFrame based on feature name
+    df_feat = df[['Date', feat_name]]
+    #sort the data based on date
+    df_feat = df_feat.sort_values('Date')
     print(df_feat.head())
+    #plot the data
+    plt.figure(figsize=(12, 6))
+    plt.plot(df_feat['Date'], df_feat[feat_name])
+    plt.title('Feature vs Time')
+    plt.ylabel('Feature')
+    plt.xlabel('Date')
+    plt.show()
     return df_feat
 
 def train_test (df_feat):
@@ -50,6 +60,12 @@ def clean_train(train):
     lower_bound = Q1 - 1.5 * IQR
     upper_bound = Q3 + 1.5 * IQR
     train = train[(train['Volt'] > lower_bound) & (train['Volt'] < upper_bound)]
+    # reduced the dimension of the data using PCA for the feature
+    pca = PCA(n_components=1)
+    train_pca = pca.fit_transform(train[['Volt']])
+    train['Volt'] = train_pca
+
+    print(train.shape)
     return train
 
 def clean_test(test):
@@ -200,7 +216,7 @@ def main():
 
     path='/Users/rianrachmanto/miniforge3/project/esp_new.csv'
     df=load_data(path)
-    df_feat=select_feat(df, 'BS3', feat_name='Volt')
+    df_feat=select_feat(df,feat_name='Volt')
     train, test=train_test(df_feat)
     train=clean_train(train)
     test=clean_test(test)
@@ -256,7 +272,6 @@ def main():
     plt.xlabel('Date')
     plt.legend()
     plt.show()
-
 
 if __name__ == '__main__':
     main()

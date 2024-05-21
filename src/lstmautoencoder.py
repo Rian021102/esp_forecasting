@@ -38,6 +38,13 @@ def train_test (df_feat):
 def clean_train(train):
     #drop all the missing values
     train = train.dropna()
+    #handle the outliers with IQR
+    Q1 = train['Volt'].quantile(0.25)
+    Q3 = train['Volt'].quantile(0.75)
+    IQR = Q3 - Q1
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+    train = train[(train['Volt'] > lower_bound) & (train['Volt'] < upper_bound)]
     print(train.shape)
     print(train.head())
     return train
