@@ -9,10 +9,6 @@ from sklearn.preprocessing import StandardScaler
 import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import LSTM, RepeatVector, TimeDistributed, Dense
-from keras.layers import Input
-import tensorflow as tf
-from keras import regularizers
-from sklearn.decomposition import PCA
 
 
 def load_data(path):
@@ -24,19 +20,10 @@ def load_data(path):
     print(df.info())
     return df
 
-def select_feat(df,feat_name):
-    # Filter the DataFrame based on feature name
-    df_feat = df[['Date', feat_name]]
-    #sort the data based on date
-    df_feat = df_feat.sort_values('Date')
+def select_feat(df, well_name, feat_name):
+    # Filter the DataFrame for the given well name
+    df_feat = df[df['Well'] == well_name][['Well', 'Date', feat_name]]
     print(df_feat.head())
-    #plot the data
-    plt.figure(figsize=(12, 6))
-    plt.plot(df_feat['Date'], df_feat[feat_name])
-    plt.title('Feature vs Time')
-    plt.ylabel('Feature')
-    plt.xlabel('Date')
-    plt.show()
     return df_feat
 
 def train_test (df_feat):
@@ -48,20 +35,18 @@ def train_test (df_feat):
     print(train.head())
     return train, test
 
-def clean_train(train,feat_name):
+def clean_train(train):
     #drop all the missing values
     train = train.dropna()
-    print(train.shape)
-    print(train.head())
-    #handling outliers using IQR
-    Q1 = train[feat_name].quantile(0.25)
-    Q3 = train[feat_name].quantile(0.75)
+    #handle the outliers with IQR
+    Q1 = train['Ampere'].quantile(0.25)
+    Q3 = train['Ampere'].quantile(0.75)
     IQR = Q3 - Q1
     lower_bound = Q1 - 1.5 * IQR
     upper_bound = Q3 + 1.5 * IQR
-    train = train[(train[feat_name] > lower_bound) & (train[feat_name] < upper_bound)]
-    # reduced the dimension of the data using PCA for the feature
+    train = train[(train['Ampere'] > lower_bound) & (train['Ampere'] < upper_bound)]
     print(train.shape)
+    print(train.head())
     return train
 
 def clean_test(test):
@@ -152,7 +137,7 @@ def train_autoencoder(autoencoder, X_train, X_test,epochs=100,batch_size=32):
         restore_best_weights=True
     )
     modelcheckpoint = tf.keras.callbacks.ModelCheckpoint(
-        filepath='/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_voltage_large.h5',
+        filepath='/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_ampere.h5',
         monitor='val_loss',
         save_best_only=True)
     
@@ -211,27 +196,19 @@ def create_anomaly_df(test, reconstruction_errors_inv, threshold_inv, predicted,
     return test_score_df
 
 
-
-
-# Adjust the function call appropriately or check the function call inputs as well.
-
-
-   
-
 def main():
 
-    feat_name='Volt'
+
     path='/Users/rianrachmanto/miniforge3/project/esp_new.csv'
     df=load_data(path)
-    df_feat=select_feat(df,feat_name)
+    df_feat=select_feat(df, 'MHNW-2', feat_name='Ampere')
     train, test=train_test(df_feat)
-    train=clean_train(train,feat_name)
+    train=clean_train(train)
     test=clean_test(test)
-    plot_data(train,feat_name)
-    scaled_train, scaled_test, scaler=preprocess_train(train, test, feat_name)
+    plot_data(train,feat_name='Ampere')
+    scaled_train, scaled_test, scaler=preprocess_train(train, test, feat_name='Ampere')
     time_steps=2
-    n_features=1
-    X_train, X_test=create_data_test(scaled_train, scaled_test, time_steps, feat_name)
+    X_train, X_test=create_data_test(scaled_train, scaled_test, time_steps, feat_name='Ampere')
     # Reshape the data for LSTM model
     X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
     X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
@@ -239,7 +216,8 @@ def main():
     print("Reshaped training data shape:", X_train.shape)
     print("Reshaped test data shape:", X_test.shape)
 
-    autoencoder=build_autoencoder(time_steps,n_features)
+    n_features=1
+    autoencoder=build_autoencoder(time_steps, n_features)
     history=train_autoencoder(autoencoder, X_train, X_test,epochs=100,batch_size=32)
     plot_train_test_loss(history)
 
@@ -266,19 +244,20 @@ def main():
     corrected_predicted_values_inv = predicted_inv[-len(test_score_df):]
 
     # insert the corrected predicted values into the DataFrame
-    test_score_df['Predicted_Volt'] = corrected_predicted_values_inv
+    test_score_df['Predicted_Ampere'] = corrected_predicted_values_inv
     print(test_score_df.head())
 
     # Plot actual, predicted, threshold and anomaly
     plt.figure(figsize=(12, 6))
-    plt.plot(test_score_df['Date'], test_score_df['Volt'], color='blue', label='Actual')
-    plt.plot(test_score_df['Date'], test_score_df['Predicted_Volt'], color='red', label='Predicted')
-    plt.scatter(test_score_df.loc[test_score_df['anomaly'], 'Date'], test_score_df.loc[test_score_df['anomaly'], 'Volt'], color='red', label='Anomaly')
+    plt.plot(test_score_df['Date'], test_score_df['Ampere'], color='blue', label='Actual')
+    plt.plot(test_score_df['Date'], test_score_df['Predicted_Ampere'], color='red', label='Predicted')
+    plt.scatter(test_score_df.loc[test_score_df['anomaly'], 'Date'], test_score_df.loc[test_score_df['anomaly'], 'Ampere'], color='red', label='Anomaly')
     plt.title('Anomaly Detection')
-    plt.ylabel('Volt')
+    plt.ylabel('Ampere')
     plt.xlabel('Date')
     plt.legend()
     plt.show()
+
 
 if __name__ == '__main__':
     main()

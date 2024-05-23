@@ -58,10 +58,10 @@ def create_dataset(df_filtered, time_steps,column_name):
 
 def main():
     path = '/Users/rianrachmanto/miniforge3/project/esp_new.csv'
-    model = tf.keras.models.load_model('/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_voltage.h5')
+    model = tf.keras.models.load_model('/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_ampere.h5')
     df = data_pipeline(path)
-    column_name = 'Volt'
-    well_name = 'BS3'
+    column_name = 'Ampere'
+    well_name = 'MHN-7'
     df_filtered = filter_data(df, column_name, well_name)  # Only gets DataFrame
     df_filtered, scaler = preprocess_data(df_filtered, column_name)  # Gets DataFrame and scaler
     time_steps = 2  # Adjusted to match the model's expected input shape
@@ -76,13 +76,13 @@ def main():
     test_score_df = df_filtered.iloc[time_steps:].copy()
 
     # Invert the scaled 'Volt' values back to original scale
-    test_score_df['Volt'] = scaler.inverse_transform(test_score_df[column_name].values.reshape(-1, 1))
+    test_score_df['Ampere'] = scaler.inverse_transform(test_score_df[column_name].values.reshape(-1, 1))
 
     test_score_df['loss'] = reconstruction_errors_inv
     test_score_df['threshold'] = np.full(len(test_score_df), threshold_inv[0])
     test_score_df['anomaly'] = test_score_df['loss'] > test_score_df['threshold']
     if yhat.shape[0] == len(test_score_df):
-        test_score_df['Predicted_Volt'] = predicted_inv[-len(test_score_df):]
+        test_score_df['Predicted_Ampere'] = predicted_inv[-len(test_score_df):]
     else:
         print("Warning: Length of predicted values does not match the length of the DataFrame. Check alignment.")
     print(test_score_df.head())
@@ -92,11 +92,11 @@ def main():
 
     # Plot actual, predicted, threshold and anomaly
     plt.figure(figsize=(12, 6))
-    plt.plot(test_score_df['Date'], test_score_df['Volt'], color='blue', label='Actual')
-    plt.plot(test_score_df['Date'], test_score_df['Predicted_Volt'], color='red', label='Predicted')
-    plt.scatter(test_score_df.loc[test_score_df['anomaly'], 'Date'], test_score_df.loc[test_score_df['anomaly'], 'Volt'], color='red', label='Anomaly')
+    plt.plot(test_score_df['Date'], test_score_df['Ampere'], color='blue', label='Actual')
+    #plt.plot(test_score_df['Date'], test_score_df['Predicted_Ampere'], color='red', label='Predicted')
+    plt.scatter(test_score_df.loc[test_score_df['anomaly'], 'Date'], test_score_df.loc[test_score_df['anomaly'], 'Ampere'], color='red', label='Anomaly')
     plt.title('Anomaly Detection')
-    plt.ylabel('Volt')
+    plt.ylabel('Ampere')
     plt.xlabel('Date')
     plt.legend()
     plt.show()
