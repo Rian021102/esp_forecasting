@@ -44,12 +44,14 @@ def clean_train(train):
     print(train.shape)
     print(train.head())
     #handling outliers using IQR
+    
     Q1 = train['Volt'].quantile(0.25)
     Q3 = train['Volt'].quantile(0.75)
     IQR = Q3 - Q1
     lower_bound = Q1 - 1.5 * IQR
     upper_bound = Q3 + 1.5 * IQR
     train = train[(train['Volt'] > lower_bound) & (train['Volt'] < upper_bound)]
+    
     return train
 
 def clean_test(test):
@@ -200,7 +202,7 @@ def main():
 
     path='/Users/rianrachmanto/miniforge3/project/esp_new.csv'
     df=load_data(path)
-    df_feat=select_feat(df, 'BS3', feat_name='Volt')
+    df_feat=select_feat(df, 'YN-7SI', feat_name='Volt')
     train, test=train_test(df_feat)
     train=clean_train(train)
     test=clean_test(test)

@@ -136,7 +136,13 @@ def train_autoencoder(autoencoder, X_train, X_test,epochs=100,batch_size=32):
         mode='min',
         restore_best_weights=True
     )
-    history = autoencoder.fit(X_train, X_train, epochs=epochs, batch_size=batch_size, validation_data=(X_test, X_test), callbacks=[early_stopping])
+    modelcheckpoint = tf.keras.callbacks.ModelCheckpoint(
+        filepath='/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_voltage.h5',
+        monitor='val_loss',
+        save_best_only=True)
+    
+    history = autoencoder.fit(X_train, X_train, epochs=epochs, batch_size=batch_size, 
+                              validation_data=(X_test, X_test), callbacks=[early_stopping, modelcheckpoint])
     return history
 
 def plot_train_test_loss(history):
@@ -202,7 +208,7 @@ def main():
 
     path='/Users/rianrachmanto/miniforge3/project/esp_new.csv'
     df=load_data(path)
-    df_feat=select_feat(df, 'BS3', feat_name='Volt')
+    df_feat=select_feat(df, 'YN-12SI', feat_name='Volt')
     train, test=train_test(df_feat)
     train=clean_train(train)
     test=clean_test(test)
