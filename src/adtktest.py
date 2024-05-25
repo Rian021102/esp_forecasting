@@ -1,7 +1,7 @@
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.ensemble import IsolationForest
+from adtk.data import validate_series
+from adtk.detector import QuantileAD
 import logging
 
 # Set up logging
@@ -30,31 +30,33 @@ def select_feat(df, well_name, feat_name):
     df_feat.drop(columns='Well', inplace=True)
     return df_feat
 
-def clean_data(df_feat, feat_name):
+def clean_data(df_feat):
     # Drop the missing values
     df_feat.dropna(inplace=True)
     return df_feat
 
-def train_isolation_forest(df_feat, feat_name, contamination):
-    # Create an Isolation Forest model
-    iso_forest = IsolationForest(contamination=contamination, random_state=42)
-    # Fit the model
-    data_2d = df_feat[feat_name].values.reshape(-1, 1)
-    iso_forest.fit(data_2d)
-    # Get the prediction labels of the training data
-    predicted = pd.Series(iso_forest.predict(data_2d), index=df_feat.index)
-    # Convert predictions from -1 (outlier) and 1 (inlier) to boolean
-    predicted = (predicted == -1)
-    logging.info(f'Number of outliers: {predicted.sum()}')
-    outliers = df_feat[predicted]
-    logging.info(outliers)
-    return iso_forest, predicted, df_feat
+def train_adtk_quantile_detector(df_feat, low_quantile, high_quantile):
+    # Validate the series
+    s = validate_series(df_feat)
 
-def plot_data_with_outliers(df_feat, feat_name, predicted):
+    # Create a Quantile Anomaly Detector
+    quantile_ad = QuantileAD(low=low_quantile, high=high_quantile)
+    
+    # Fit the detector (not necessary for QuantileAD, but for consistency in pipeline)
+    quantile_ad.fit(s)
+
+    # Detect anomalies
+    anomalies = quantile_ad.detect(s)
+    logging.info(f'Number of outliers: {anomalies.sum()}')
+    outliers = df_feat[anomalies[feat_name]]
+    logging.info(outliers)
+    return quantile_ad, anomalies, df_feat
+
+def plot_data_with_outliers(df_feat, feat_name, anomalies):
     plt.figure(figsize=(12, 6))
     plt.plot(df_feat.index, df_feat[feat_name], label='Data', zorder=1)  # Ensure data is plotted beneath outliers
     # Plot outliers
-    outliers = df_feat.loc[predicted, feat_name]  # Correct way to access the outliers
+    outliers = df_feat.loc[anomalies[feat_name], feat_name]  # Correct way to access the outliers
     plt.scatter(outliers.index, outliers, color='red', label='Outliers', zorder=2)
     plt.xlabel('Date')
     plt.ylabel(feat_name)
@@ -62,16 +64,17 @@ def plot_data_with_outliers(df_feat, feat_name, predicted):
     plt.legend()
     plt.show()
 
-def main(path, well_name, feat_name, contamination):
+def main(path, well_name, feat_name, low_quantile, high_quantile):
     df = load_data(path)
     df_feat = select_feat(df, well_name, feat_name)
-    df_feat = clean_data(df_feat, feat_name)
-    iso_forest, predicted, df_feat = train_isolation_forest(df_feat, feat_name, contamination)
-    plot_data_with_outliers(df_feat, feat_name, predicted)
+    df_feat = clean_data(df_feat)
+    quantile_ad, anomalies, df_feat = train_adtk_quantile_detector(df_feat, low_quantile, high_quantile)
+    plot_data_with_outliers(df_feat, feat_name, anomalies)
 
 if __name__ == '__main__':
     path = '/Users/rianrachmanto/pypro/data/esp_new.csv'
     well_name = 'MHN-6'
     feat_name = 'Ampere'
-    contamination = 0.2
-    main(path, well_name, feat_name, contamination)
+    low_quantile = 0.05
+    high_quantile = 0.95
+    main(path, well_name, feat_name, low_quantile, high_quantile)
