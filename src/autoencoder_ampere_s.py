@@ -252,6 +252,8 @@ def main():
     plt.plot(test_score_df['Date'], test_score_df['Ampere'], color='blue', label='Actual')
     plt.plot(test_score_df['Date'], test_score_df['Predicted_Ampere'], color='red', label='Predicted')
     plt.scatter(test_score_df.loc[test_score_df['anomaly'], 'Date'], test_score_df.loc[test_score_df['anomaly'], 'Ampere'], color='red', label='Anomaly')
+    # write 'Using LSTM Autoencoder' on the plot Top Right
+    plt.text(test_score_df['Date'].iloc[-1], test_score_df['Ampere'].max(), 'Using LSTM Autoencoder', horizontalalignment='right')
     plt.title('Anomaly Detection')
     plt.ylabel('Ampere')
     plt.xlabel('Date')

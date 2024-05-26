@@ -61,7 +61,7 @@ def main():
     model = tf.keras.models.load_model('/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_ampere.h5')
     df = data_pipeline(path)
     column_name = 'Ampere'
-    well_name = 'MHN-7'
+    well_name = 'MHN-6'
     df_filtered = filter_data(df, column_name, well_name)  # Only gets DataFrame
     df_filtered, scaler = preprocess_data(df_filtered, column_name)  # Gets DataFrame and scaler
     time_steps = 2  # Adjusted to match the model's expected input shape
@@ -93,7 +93,7 @@ def main():
     # Plot actual, predicted, threshold and anomaly
     plt.figure(figsize=(12, 6))
     plt.plot(test_score_df['Date'], test_score_df['Ampere'], color='blue', label='Actual')
-    #plt.plot(test_score_df['Date'], test_score_df['Predicted_Ampere'], color='red', label='Predicted')
+    plt.plot(test_score_df['Date'], test_score_df['Predicted_Ampere'], color='red', label='Predicted')
     plt.scatter(test_score_df.loc[test_score_df['anomaly'], 'Date'], test_score_df.loc[test_score_df['anomaly'], 'Ampere'], color='red', label='Anomaly')
     plt.title('Anomaly Detection')
     plt.ylabel('Ampere')

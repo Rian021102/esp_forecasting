@@ -30,6 +30,8 @@ def select_feat(df,feat_name):
     #sort the data based on date
     df_feat = df_feat.sort_values('Date')
     print(df_feat.head())
+    #average the data based on date
+    df_feat = df_feat.groupby('Date').mean().reset_index()
     #plot the data
     plt.figure(figsize=(12, 6))
     plt.plot(df_feat['Date'], df_feat[feat_name])
@@ -41,7 +43,7 @@ def select_feat(df,feat_name):
 
 def train_test (df_feat):
     #split based on length of the data with 80% training and 20% testing
-    train_size = int(len(df_feat) * 0.7)
+    train_size = int(len(df_feat) * 0.65)
     test_size = len(df_feat) - train_size
     train, test = df_feat.iloc[0:train_size], df_feat.iloc[train_size:len(df_feat)]
     print(train.shape, test.shape)
@@ -220,7 +222,7 @@ def create_anomaly_df(test, reconstruction_errors_inv, threshold_inv, predicted,
 
 def main():
 
-    feat_name='Volt'
+    feat_name='Ampere'
     path='/Users/rianrachmanto/miniforge3/project/esp_new.csv'
     df=load_data(path)
     df_feat=select_feat(df,feat_name)
