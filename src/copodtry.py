@@ -52,6 +52,8 @@ def plot_data_with_outliers(df_feat, feat_name, predicted):
     # Plot outliers
     outliers = df_feat.loc[predicted == 1, feat_name]
     plt.scatter(outliers.index, outliers, color='red', label='Outliers')
+    #add text that says anomaly detection using COPOD on the left
+    plt.text(df_feat.index[0], df_feat[feat_name].max(), 'Anomaly Detection using COPOD', fontsize=12, color='red')
     plt.xlabel('Date')
     plt.ylabel(feat_name)
     plt.title(f'{feat_name} over Time with Outliers Marked')
@@ -65,7 +67,7 @@ def main():
     feat_name = 'Ampere'
     df_feat = select_feat(df, well_name, feat_name)
     df_feat = clean_data(df_feat, feat_name)
-    contamination = 0.05
+    contamination = 0.1
     copod, predicted, df_feat = train_copod(df_feat, feat_name, contamination)
     print('length of predicted:', len(predicted))
     plot_data_with_outliers(df_feat, feat_name, predicted)

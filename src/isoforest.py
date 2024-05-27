@@ -59,6 +59,8 @@ def plot_data_with_outliers(df_feat, feat_name, predicted):
     plt.xlabel('Date')
     plt.ylabel(feat_name)
     plt.title(f'{feat_name} over Time with Outliers Marked')
+    # put text that says Isolation Forest
+    plt.text(0.5, 0.5, 'Isolation Forest', horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes, fontsize=16)
     plt.legend()
     plt.show()
 
@@ -73,5 +75,5 @@ if __name__ == '__main__':
     path = '/Users/rianrachmanto/pypro/data/esp_new.csv'
     well_name = 'MHN-6'
     feat_name = 'Ampere'
-    contamination = 0.2
+    contamination = 0.05
     main(path, well_name, feat_name, contamination)
