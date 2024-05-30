@@ -224,8 +224,10 @@ def main():
 
     predicted = autoencoder.predict(X_test)
     reconstruction_errors = np.mean(np.abs(predicted - X_test), axis=1)
+    #estimate threshold using Z-score
+    threshold = np.mean(reconstruction_errors) + 3 * np.std(reconstruction_errors)
     #estimate threshold from 95th percentile of reconstruction errors
-    threshold = np.percentile(reconstruction_errors, 95)
+    #threshold = np.percentile(reconstruction_errors, 95)
     print("Threshold:", threshold)
 
     reconstruction_errors_inv, threshold_inv, predicted_inv = inverse_transform(reconstruction_errors, threshold, predicted, scaler)

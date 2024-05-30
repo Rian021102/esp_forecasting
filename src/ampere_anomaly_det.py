@@ -79,7 +79,9 @@ def main():
     X = X.reshape((X.shape[0], X.shape[1], 1))  # Reshape X to include the feature dimension
     yhat = model.predict(X)
     reconstruction_error = np.mean(np.abs(yhat - X), axis=1)
-    threshold = np.percentile(reconstruction_error, 95)
+    # calculate the threshold using Z-score
+    threshold = np.mean(reconstruction_error) + 2 * np.std(reconstruction_error)
+    #threshold = np.percentile(reconstruction_error, 95)
     reconstruction_errors_inv = scaler.inverse_transform(reconstruction_error.reshape(-1, 1)).flatten()
     threshold_inv = scaler.inverse_transform(np.array([[threshold]]))
     predicted_inv = scaler.inverse_transform(yhat.reshape(-1, 1)).flatten()
