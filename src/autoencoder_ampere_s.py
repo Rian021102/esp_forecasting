@@ -199,8 +199,9 @@ def create_anomaly_df(test, reconstruction_errors_inv, threshold_inv, predicted,
 def main():
 
 
-    path='/Users/rianrachmanto/miniforge3/project/esp_new.csv'
+    path='/Users/rianrachmanto/miniforge3/project/esp_new_02.csv'
     df=load_data(path)
+    #original training using MHNW-2 Well and Ampere feature
     df_feat=select_feat(df, 'MHNW-2', feat_name='Ampere')
     train, test=train_test(df_feat)
     train=clean_train(train)

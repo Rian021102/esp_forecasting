@@ -12,7 +12,15 @@ from keras.layers import LSTM, RepeatVector, TimeDistributed, Dense
 
 '''
 This is for performing anomaly detection on the voltage data, using trained model
+
 '''
+def data_excel(pathexcel):
+    # load the data
+    df=pd.read_excel(pathexcel)
+    # convert Date column to datetime
+    #df['Date'] = pd.to_datetime(df['Date'])
+    return df
+
 def data_pipeline(path):
     # load the data
     df=pd.read_csv(path)
@@ -57,11 +65,13 @@ def create_dataset(df_filtered, time_steps,column_name):
     return X
 
 def main():
-    path = '/Users/rianrachmanto/miniforge3/project/esp_new.csv'
+    path = '/Users/rianrachmanto/miniforge3/project/esp_new_02.csv'
+    pathexcel = '/Users/rianrachmanto/miniforge3/project/YWB-15 Data.xlsx'
     model = tf.keras.models.load_model('/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_ampere.h5')
     df = data_pipeline(path)
+    #df=data_excel(pathexcel)
     column_name = 'Ampere'
-    well_name = 'MHN-6'
+    well_name = 'YWB-15'
     df_filtered = filter_data(df, column_name, well_name)  # Only gets DataFrame
     df_filtered, scaler = preprocess_data(df_filtered, column_name)  # Gets DataFrame and scaler
     time_steps = 2  # Adjusted to match the model's expected input shape
