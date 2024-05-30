@@ -61,13 +61,13 @@ def plot_data_with_outliers(df_feat, feat_name, predicted):
     plt.show()
 
 def main():
-    path = '/Users/rianrachmanto/pypro/data/esp_new.csv'
+    path = '/Users/rianrachmanto/pypro/data/esp_new_02.csv'
     df = load_data(path)
-    well_name = 'MHN-6'
+    well_name = 'YWB-15'
     feat_name = 'Ampere'
     df_feat = select_feat(df, well_name, feat_name)
     df_feat = clean_data(df_feat, feat_name)
-    contamination = 0.1
+    contamination = 0.2
     copod, predicted, df_feat = train_copod(df_feat, feat_name, contamination)
     print('length of predicted:', len(predicted))
     plot_data_with_outliers(df_feat, feat_name, predicted)

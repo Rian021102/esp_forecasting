@@ -72,8 +72,8 @@ def main(path, well_name, feat_name, contamination):
     plot_data_with_outliers(df_feat, feat_name, predicted)
 
 if __name__ == '__main__':
-    path = '/Users/rianrachmanto/pypro/data/esp_new.csv'
-    well_name = 'MHN-6'
+    path = '/Users/rianrachmanto/pypro/data/esp_new_02.csv'
+    well_name = 'YWB-15'
     feat_name = 'Ampere'
     contamination = 0.05
     main(path, well_name, feat_name, contamination)
