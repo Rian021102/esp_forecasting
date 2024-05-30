@@ -154,7 +154,7 @@ def train_autoencoder(autoencoder, X_train, X_test,epochs=100,batch_size=32):
         restore_best_weights=True
     )
     modelcheckpoint = tf.keras.callbacks.ModelCheckpoint(
-        filepath='/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_voltage_large.h5',
+        filepath='/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_ampere_large.h5',
         monitor='val_loss',
         save_best_only=True)
     
@@ -203,7 +203,7 @@ def create_anomaly_df(test, reconstruction_errors_inv, threshold_inv, predicted,
 
     # Including raw predicted values ensuring they are aligned in length and indexing with the test_score_df
     if predicted.shape[0] == len(test_score_df):
-        test_score_df['Predicted_Volt'] = predicted[:, -1]  # assuming the last value in each prediction sequence
+        test_score_df['Predicted_Ampere'] = predicted[:, -1]  # assuming the last value in each prediction sequence
     else:
         # If there's a mismatch, log a warning and investigate the lengths
         print("Warning: Length of predicted values does not match the length of the DataFrame. Check alignment.")
@@ -223,7 +223,7 @@ def create_anomaly_df(test, reconstruction_errors_inv, threshold_inv, predicted,
 def main():
 
     feat_name='Ampere'
-    path='/Users/rianrachmanto/miniforge3/project/esp_new.csv'
+    path='/Users/rianrachmanto/miniforge3/project/esp_new_02.csv'
     df=load_data(path)
     df_feat=select_feat(df,feat_name)
     train, test=train_test(df_feat)
@@ -273,11 +273,11 @@ def main():
 
     # Plot actual, predicted, threshold and anomaly
     plt.figure(figsize=(12, 6))
-    plt.plot(test_score_df['Date'], test_score_df['Volt'], color='blue', label='Actual')
-    plt.plot(test_score_df['Date'], test_score_df['Predicted_Volt'], color='red', label='Predicted')
-    plt.scatter(test_score_df.loc[test_score_df['anomaly'], 'Date'], test_score_df.loc[test_score_df['anomaly'], 'Volt'], color='red', label='Anomaly')
+    plt.plot(test_score_df['Date'], test_score_df['Ampere'], color='blue', label='Actual')
+    plt.plot(test_score_df['Date'], test_score_df['Predicted_Ampere'], color='red', label='Predicted')
+    plt.scatter(test_score_df.loc[test_score_df['anomaly'], 'Date'], test_score_df.loc[test_score_df['anomaly'], 'Ampere'], color='red', label='Anomaly')
     plt.title('Anomaly Detection')
-    plt.ylabel('Volt')
+    plt.ylabel('Ampere')
     plt.xlabel('Date')
     plt.legend()
     plt.show()
