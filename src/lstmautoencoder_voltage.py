@@ -56,12 +56,12 @@ def clean_train(train,feat_name):
     print(train.shape)
     print(train.head())
     #handling outliers using IQR
-    Q1 = train[feat_name].quantile(0.25)
-    Q3 = train[feat_name].quantile(0.75)
-    IQR = Q3 - Q1
-    lower_bound = Q1 - 1.5 * IQR
-    upper_bound = Q3 + 1.5 * IQR
-    train = train[(train[feat_name] > lower_bound) & (train[feat_name] < upper_bound)]
+    #Q1 = train[feat_name].quantile(0.25)
+    #Q3 = train[feat_name].quantile(0.75)
+    #IQR = Q3 - Q1
+    #lower_bound = Q1 - 1.5 * IQR
+    #upper_bound = Q3 + 1.5 * IQR
+    #train = train[(train[feat_name] > lower_bound) & (train[feat_name] < upper_bound)]
     # reduced the dimension of the data using PCA for the feature
     print(train.shape)
     return train

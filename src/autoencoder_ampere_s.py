@@ -39,12 +39,12 @@ def clean_train(train):
     #drop all the missing values
     train = train.dropna()
     #handle the outliers with IQR
-    Q1 = train['Ampere'].quantile(0.25)
-    Q3 = train['Ampere'].quantile(0.75)
-    IQR = Q3 - Q1
-    lower_bound = Q1 - 1.5 * IQR
-    upper_bound = Q3 + 1.5 * IQR
-    train = train[(train['Ampere'] > lower_bound) & (train['Ampere'] < upper_bound)]
+    #Q1 = train['Ampere'].quantile(0.25)
+    #Q3 = train['Ampere'].quantile(0.75)
+    #IQR = Q3 - Q1
+    #lower_bound = Q1 - 1.5 * IQR
+    #upper_bound = Q3 + 1.5 * IQR
+    #train = train[(train['Ampere'] > lower_bound) & (train['Ampere'] < upper_bound)]
     print(train.shape)
     print(train.head())
     return train
@@ -137,7 +137,7 @@ def train_autoencoder(autoencoder, X_train, X_test,epochs=100,batch_size=32):
         restore_best_weights=True
     )
     modelcheckpoint = tf.keras.callbacks.ModelCheckpoint(
-        filepath='/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_ampere.h5',
+        filepath='/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_ampere_no_iqr.h5',
         monitor='val_loss',
         save_best_only=True)
     
@@ -186,7 +186,7 @@ def create_anomaly_df(test, reconstruction_errors_inv, threshold_inv, predicted,
 
     # Including raw predicted values ensuring they are aligned in length and indexing with the test_score_df
     if predicted.shape[0] == len(test_score_df):
-        test_score_df['Predicted_Volt'] = predicted[:, -1]  # assuming the last value in each prediction sequence
+        test_score_df['Predicted_Ampere'] = predicted[:, -1]  # assuming the last value in each prediction sequence
     else:
         # If there's a mismatch, log a warning and investigate the lengths
         print("Warning: Length of predicted values does not match the length of the DataFrame. Check alignment.")
@@ -225,9 +225,9 @@ def main():
     predicted = autoencoder.predict(X_test)
     reconstruction_errors = np.mean(np.abs(predicted - X_test), axis=1)
     #estimate threshold using Z-score
-    threshold = np.mean(reconstruction_errors) + 3 * np.std(reconstruction_errors)
+    #threshold = np.mean(reconstruction_errors) + 3 * np.std(reconstruction_errors)
     #estimate threshold from 95th percentile of reconstruction errors
-    #threshold = np.percentile(reconstruction_errors, 95)
+    threshold = np.percentile(reconstruction_errors, 95)
     print("Threshold:", threshold)
 
     reconstruction_errors_inv, threshold_inv, predicted_inv = inverse_transform(reconstruction_errors, threshold, predicted, scaler)
