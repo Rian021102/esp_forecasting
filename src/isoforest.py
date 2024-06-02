@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.ensemble import IsolationForest
+#import knn imputer
+from sklearn.impute import KNNImputer
 import logging
 
 # Set up logging
@@ -31,8 +33,11 @@ def select_feat(df, well_name, feat_name):
     return df_feat
 
 def clean_data(df_feat, feat_name):
+    # Impute missing values using KNN imputer
+    imputer = KNNImputer(n_neighbors=5)
+    df_feat[feat_name] = imputer.fit_transform(df_feat[feat_name].values.reshape(-1, 1))
     # Drop the missing values
-    df_feat.dropna(inplace=True)
+    #df_feat.dropna(inplace=True)
     return df_feat
 
 def train_isolation_forest(df_feat, feat_name, contamination):

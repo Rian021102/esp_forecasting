@@ -4,15 +4,17 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
+#import knn imputer
+from sklearn.impute import KNNImputer
 
 def read_data(path):
     df = pd.read_csv(path)
     df.replace('No Data', np.nan, inplace=True)
     df['Date'] = pd.to_datetime(df['Date'])
+    print(df.info())
     df.dropna(inplace=True)
     numeric_columns = ['Frequency', 'Voltage', 'Ampere', 'Pressure_Discharge', 'Pressure_Intake', 'Temp_Intake', 'Temp_Motor', 'Vibration_X', 'Vibration_Y']
     df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric, errors='coerce')
-    df.dropna(inplace=True)
     return df
 
 def scale_data(df, num_columns):
