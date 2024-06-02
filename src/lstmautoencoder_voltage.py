@@ -13,6 +13,8 @@ from keras.layers import Input
 import tensorflow as tf
 from keras import regularizers
 from sklearn.decomposition import PCA
+#import knn imputer
+from sklearn.impute import KNNImputer
 
 
 def load_data(path):
@@ -31,7 +33,7 @@ def select_feat(df,feat_name):
     df_feat = df_feat.sort_values('Date')
     print(df_feat.head())
     #average the data based on date
-    df_feat = df_feat.groupby('Date').mean().reset_index()
+    df_feat = df_feat.groupby('Date').median().reset_index()
     #plot the data
     plt.figure(figsize=(12, 6))
     plt.plot(df_feat['Date'], df_feat[feat_name])
@@ -52,7 +54,12 @@ def train_test (df_feat):
 
 def clean_train(train,feat_name):
     #drop all the missing values
-    train = train.dropna()
+    #train = train.dropna()
+    #select all numerical features
+    num_cols = train.select_dtypes(include=['float64', 'int64']).columns
+    #impute the missing values using KNN imputer
+    imputer = KNNImputer(n_neighbors=2)
+    train[num_cols] = imputer.fit_transform(train[num_cols])
     print(train.shape)
     print(train.head())
     #handling outliers using IQR
@@ -268,7 +275,7 @@ def main():
     corrected_predicted_values_inv = predicted_inv[-len(test_score_df):]
 
     # insert the corrected predicted values into the DataFrame
-    test_score_df['Predicted_Volt'] = corrected_predicted_values_inv
+    test_score_df['Predicted_Ampere'] = corrected_predicted_values_inv
     print(test_score_df.head())
 
     # Plot actual, predicted, threshold and anomaly

@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+#import knn imputer
+from sklearn.impute import KNNImputer
 #standardize the data
 from sklearn.preprocessing import StandardScaler
 import tensorflow as tf
@@ -37,7 +39,11 @@ def train_test (df_feat):
 
 def clean_train(train):
     #drop all the missing values
-    train = train.dropna()
+    #train = train.dropna()
+    #impute the missing values using KNN imputer
+    num_columns = train.select_dtypes(include=['float64', 'int64']).columns
+    imputer = KNNImputer(n_neighbors=2)
+    train[num_columns] = imputer.fit_transform(train[num_columns])
     #handle the outliers with IQR
     #Q1 = train['Ampere'].quantile(0.25)
     #Q3 = train['Ampere'].quantile(0.75)
@@ -137,7 +143,7 @@ def train_autoencoder(autoencoder, X_train, X_test,epochs=100,batch_size=32):
         restore_best_weights=True
     )
     modelcheckpoint = tf.keras.callbacks.ModelCheckpoint(
-        filepath='/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_ampere_no_iqr.h5',
+        filepath='/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_ampere_no_iqr_knn_imputer.h5',
         monitor='val_loss',
         save_best_only=True)
     

@@ -67,7 +67,7 @@ def create_dataset(df_filtered, time_steps,column_name):
 def main():
     path = '/Users/rianrachmanto/miniforge3/project/esp_new_02.csv'
     pathexcel = '/Users/rianrachmanto/miniforge3/project/YWB-15 Data.xlsx'
-    model = tf.keras.models.load_model('/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_ampere_large.h5')
+    model = tf.keras.models.load_model('/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_voltage_large.h5')
     df = data_pipeline(path)
     #df=data_excel(pathexcel)
     column_name = 'Ampere'
@@ -80,8 +80,8 @@ def main():
     yhat = model.predict(X)
     reconstruction_error = np.mean(np.abs(yhat - X), axis=1)
     # calculate the threshold using Z-score
-    #threshold = np.mean(reconstruction_error) + 2 * np.std(reconstruction_error)
-    threshold = np.percentile(reconstruction_error, 95)
+    threshold = np.mean(reconstruction_error) + 2 * np.std(reconstruction_error)
+    #threshold = np.percentile(reconstruction_error, 95)
     reconstruction_errors_inv = scaler.inverse_transform(reconstruction_error.reshape(-1, 1)).flatten()
     threshold_inv = scaler.inverse_transform(np.array([[threshold]]))
     predicted_inv = scaler.inverse_transform(yhat.reshape(-1, 1)).flatten()
