@@ -143,7 +143,7 @@ def train_autoencoder(autoencoder, X_train, X_test,epochs=100,batch_size=32):
         restore_best_weights=True
     )
     modelcheckpoint = tf.keras.callbacks.ModelCheckpoint(
-        filepath='/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_ampere_no_iqr_knn_imputer.h5',
+        filepath='/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/YWB-15.h5',
         monitor='val_loss',
         save_best_only=True)
     
@@ -208,7 +208,7 @@ def main():
     path='/Users/rianrachmanto/miniforge3/project/esp_new_02.csv'
     df=load_data(path)
     #original training using MHNW-2 Well and Ampere feature
-    df_feat=select_feat(df, 'MHNW-2', feat_name='Ampere')
+    df_feat=select_feat(df, 'YWB-15', feat_name='Ampere')
     train, test=train_test(df_feat)
     train=clean_train(train)
     test=clean_test(test)
