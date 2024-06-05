@@ -56,6 +56,10 @@ def clean_train(train):
     return train
 
 def clean_test(test):
+    #impute the missing values using KNN imputer
+    #num_columns = test.select_dtypes(include=['float64', 'int64']).columns
+    #imputer = KNNImputer(n_neighbors=2)
+    #test[num_columns] = imputer.fit_transform(test[num_columns])
     #drop all the missing values
     test = test.dropna()
     print(test.shape)
@@ -143,7 +147,7 @@ def train_autoencoder(autoencoder, X_train, X_test,epochs=100,batch_size=32):
         restore_best_weights=True
     )
     modelcheckpoint = tf.keras.callbacks.ModelCheckpoint(
-        filepath='/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/YWB-15.h5',
+        filepath='/Users/rianrachmanto/miniforge3/project/esp_forecast_LSTM/model/autoencoder_ampere_no_iqr_knn_imputer.h5',
         monitor='val_loss',
         save_best_only=True)
     
@@ -208,7 +212,7 @@ def main():
     path='/Users/rianrachmanto/miniforge3/project/esp_new_02.csv'
     df=load_data(path)
     #original training using MHNW-2 Well and Ampere feature
-    df_feat=select_feat(df, 'YWB-15', feat_name='Ampere')
+    df_feat=select_feat(df, 'MHNW-2', feat_name='Ampere')
     train, test=train_test(df_feat)
     train=clean_train(train)
     test=clean_test(test)
