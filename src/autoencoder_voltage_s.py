@@ -225,6 +225,7 @@ def main():
 
     n_features=1
     autoencoder=build_autoencoder(time_steps, n_features)
+    autoencoder.summary()
     history=train_autoencoder(autoencoder, X_train, X_test,epochs=100,batch_size=32)
     plot_train_test_loss(history)
 
