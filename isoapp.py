@@ -38,7 +38,7 @@ if uploaded_file is not None:
         # Impute missing values using KNN imputer
         imputer = KNNImputer(n_neighbors=5)
         df_feat[col] = imputer.fit_transform(df_feat[col].values.reshape(-1, 1))
-        iso_forest = IsolationForest(n_estimators=100, max_samples='auto', contamination=0.01, 
+        iso_forest = IsolationForest(n_estimators=100, max_samples='auto', contamination='auto', 
                                      max_features=1.0, bootstrap=False, n_jobs=None, random_state=None, 
                                      verbose=0, warm_start=False)
         # Fit the model

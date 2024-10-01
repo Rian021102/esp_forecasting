@@ -43,6 +43,15 @@ def train_isolation_forest(df_feat, feat_name, contamination, window_size):
     logging.info(f'Number of outliers: {predicted_full.sum()}')
     return iso_forest, predicted_full, df_feat
 
+#make function to plot the data series only
+def plot_data(df_feat, feat_name):
+    plt.figure(figsize=(12, 6))
+    plt.plot(df_feat.index, df_feat[feat_name])
+    plt.xlabel('Date')
+    plt.ylabel(feat_name)
+    plt.title(f'{feat_name} over Time')
+    plt.show()
+
 def plot_data_with_outliers(df_feat, feat_name, predicted):
     plt.figure(figsize=(12, 6))
     plt.plot(df_feat.index, df_feat[feat_name], label='Data', zorder=1)
@@ -59,13 +68,14 @@ def main(path, well_name, feat_name, contamination, window_size):
     df = load_data(path)
     df_feat = select_feat(df, well_name, feat_name)
     df_feat = clean_data(df_feat, feat_name)
+    plot_data(df_feat, feat_name)
     iso_forest, predicted, df_feat = train_isolation_forest(df_feat, feat_name, contamination, window_size)
     plot_data_with_outliers(df_feat, feat_name, predicted)
     
 if __name__ == '__main__':
     path = '/Users/rianrachmanto/pypro/data/esp_new_02.csv'
     well_name = 'YWB-15'
-    feat_name = 'Volt'
-    contamination = 0.05
+    feat_name = 'Ampere'
+    contamination =0.05
     window_size = 7  # Define window size here
     main(path, well_name, feat_name, contamination, window_size)
