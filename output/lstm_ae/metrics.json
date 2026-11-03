@@ -1,0 +1,48 @@
+{
+  "config": {
+    "seq": 30,
+    "epochs": 40,
+    "folds": 5,
+    "quantile": 0.99,
+    "seed": 42
+  },
+  "results": {
+    "lstm_autoencoder": {
+      "auc_score_1to30d_vs_healthy": 0.554,
+      "events": 105,
+      "recall_30d": 0.095,
+      "median_lead_days": 22.5,
+      "false_alarms_per_well_year": 0.38,
+      "alarm_day_rate_healthy": 0.0169,
+      "error_lift_before_failure": {
+        "TEMP_INT": 45.08,
+        "AMP_PER_HZ": 23.74,
+        "TEMP_MOT": 21.39,
+        "FREQUENCY": 21.19,
+        "PRESS_DESC": 20.63,
+        "PUMP_DP": 15.48,
+        "AMP_RATIO": 14.93,
+        "VIBRATION": 12.72,
+        "CURRENT": 8.9,
+        "PRESS_INT": 6.58,
+        "OFF": 2.09
+      }
+    },
+    "rule_amp_ratio_20pct": {
+      "auc_score_1to30d_vs_healthy": 0.571,
+      "events": 105,
+      "recall_30d": 0.152,
+      "median_lead_days": 20.5,
+      "false_alarms_per_well_year": 0.51,
+      "alarm_day_rate_healthy": 0.0112
+    },
+    "rule_pump_off": {
+      "auc_score_1to30d_vs_healthy": 0.52,
+      "events": 105,
+      "recall_30d": 0.305,
+      "median_lead_days": 30.0,
+      "false_alarms_per_well_year": 1.31,
+      "alarm_day_rate_healthy": 0.1935
+    }
+  }
+}

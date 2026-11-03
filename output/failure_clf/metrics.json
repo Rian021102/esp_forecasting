@@ -1,0 +1,53 @@
+{
+  "config": {
+    "folds": 5,
+    "seq": 30,
+    "epochs": 30,
+    "alarm_quantile": 0.98,
+    "seed": 42,
+    "no_ampcard": false,
+    "tag": ""
+  },
+  "results": {
+    "lightgbm": {
+      "auc": 0.653,
+      "pr_auc": 0.13,
+      "base_rate": 0.055,
+      "events": 105,
+      "recall_30d": 0.229,
+      "median_lead_days": 22.0,
+      "false_alarms_per_well_year": 0.91,
+      "alarm_day_rate_healthy": 0.0403
+    },
+    "lstm_classifier": {
+      "auc": 0.513,
+      "pr_auc": 0.07,
+      "base_rate": 0.056,
+      "events": 105,
+      "recall_30d": 0.086,
+      "median_lead_days": 18.0,
+      "false_alarms_per_well_year": 0.39,
+      "alarm_day_rate_healthy": 0.0218
+    },
+    "lstm_autoencoder": {
+      "auc": 0.554,
+      "pr_auc": 0.077,
+      "base_rate": 0.056,
+      "events": 105,
+      "recall_30d": 0.095,
+      "median_lead_days": 22.5,
+      "false_alarms_per_well_year": 0.38,
+      "alarm_day_rate_healthy": 0.0169
+    },
+    "rule_amp_ratio_20pct": {
+      "auc": 0.571,
+      "pr_auc": 0.078,
+      "base_rate": 0.053,
+      "events": 105,
+      "recall_30d": 0.152,
+      "median_lead_days": 20.5,
+      "false_alarms_per_well_year": 0.51,
+      "alarm_day_rate_healthy": 0.0112
+    }
+  }
+}

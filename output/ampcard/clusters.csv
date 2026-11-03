@@ -1,0 +1,11 @@
+cluster,shape,amp_card_class,purity,rule_majority,share_pct,failure_within_30d_pct,failure_lift,median_level_hz,median_jitter
+7,Gradual rise,High amperage (overload),0.242,Gassy / erratic loading,0.7,29.1,5.24,1.56,0.001
+5,Gradual rise,High amperage (overload),0.453,High amperage (overload),6.3,7.2,1.29,1.01,0.002
+1,Steady at baseline,Normal operation,0.875,Normal operation,61.1,5.8,1.04,1.0,0.001
+6,Steady at baseline,Normal operation,0.592,Normal operation,13.4,5.0,0.9,0.94,0.002
+8,Steady above baseline,High amperage (overload),0.153,Normal operation,13.0,4.7,0.84,1.06,0.002
+2,Steady above baseline,High amperage (overload),0.441,High amperage (overload),2.0,4.0,0.71,1.44,0.004
+0,Recovering to baseline,Normal operation,0.0,Gassy / erratic loading,1.8,2.1,0.38,1.02,0.002
+3,Sudden drop,Low amperage (underload),0.611,Low amperage (underload),1.1,0.0,0.0,0.72,0.0
+4,Sudden rise,High amperage (overload),0.749,High amperage (overload),0.6,0.0,0.0,2.0,0.0
+9,Recovering to baseline,Normal operation,0.0,Gassy / erratic loading,0.2,0.0,0.0,1.07,0.0

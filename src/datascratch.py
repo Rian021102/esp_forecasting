@@ -1,12 +1,5 @@
-import os
 import pandas as pd
 import matplotlib.pyplot as plt
-
-
-
-
-
-
 
 def load_data(file_path):
     """
@@ -25,35 +18,40 @@ def load_data(file_path):
         print(f"Error loading data: {e}")
         return None
 
+def plot_data(df, x_column):
+
+#plot based on the column name provided where y_column DATE data
+    """
+    Plot the data from the DataFrame based on the specified x_column.
+
+    Parameters:
+    df (pd.DataFrame): The DataFrame containing the data to plot.
+    x_column (str): The name of the column to use for the x-axis.
+    """
+    if x_column not in df.columns:
+        print(f"Column '{x_column}' not found in DataFrame.")
+        return
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(df[x_column], df['DATE'], marker='o')  # Assuming 'DATE' is a column in the DataFrame
+    plt.title(f"Plot of DATE vs {x_column}")
+    plt.xlabel(x_column)
+    plt.ylabel('DATE')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+
 
 def main():
     path="/home/rianr/pypro/myvenv/esp_forecasting/data/wells_data_final.csv" 
     df = load_data(path)
     print(df.head())  # Display the first few rows of the DataFrame
 
-    df["DATE"] = pd.to_datetime(df["DATE"])
-
-    out_dir = "/home/rianr/pypro/myvenv/esp_forecasting/image/wells"
-    os.makedirs(out_dir, exist_ok=True)
-
-    # One file per well; each pump installed in the well gets its own line
-    for well_id, well in df.groupby("WELL_ID"):
-        well = well.sort_values("DATE")
-
-        fig, ax = plt.subplots(figsize=(12, 5))
-        for pump, segment in well.groupby("PUMP", sort=False):
-            ax.plot(segment["DATE"], segment["CURRENT"], label=pump)
-        ax.set_title(f"CURRENT - {well_id}")
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Current")
-        ax.legend(title="Pump")
-        fig.tight_layout()
-
-        fig.savefig(os.path.join(out_dir, f"{well_id}.png"), dpi=150)
-        plt.close(fig)
-
-    print(f"Saved {df['WELL_ID'].nunique()} plots to {out_dir}")
-
+    #plot AMPERAGE for each WELL_ID column
+    wells=df['PUMP'].unique()
+    for well in wells:
+        well_data = df[df['WELL_ID'] == well]
+        plot_data(well_data, 'AMPERAGE')
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,14 @@
+AMP_CARD_DETAIL,share_pct,failure_within_30d_pct,failure_lift
+Cycling,2.3,13.7,2.47
+Gassy / erratic loading,6.0,8.6,1.54
+Recent trip,4.7,7.9,1.42
+High amperage (overload) – gradual rise,3.4,7.1,1.28
+Normal operation – steady at baseline,49.5,5.7,1.02
+High amperage (overload) – steady above baseline,7.0,4.9,0.88
+Insufficient running data,0.1,4.8,0.86
+Extended shutdown,12.7,4.4,0.79
+Restart after shutdown,6.5,3.3,0.6
+Speed change (VSD),6.5,2.7,0.49
+Normal operation – recovering to baseline,0.4,0.0,0.0
+High amperage (overload) – sudden rise,0.3,0.0,0.0
+Low amperage (underload) – sudden drop,0.6,0.0,0.0
