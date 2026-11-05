@@ -1,0 +1,26 @@
+58979 rows | labelled 53484 (pos 2954) | 34 features | device=cuda
+fold 1/5: lgb val PR-AUC 0.057
+fold 2/5: lgb val PR-AUC 0.062
+fold 3/5: lgb val PR-AUC 0.071
+fold 4/5: lgb val PR-AUC 0.095
+fold 5/5: lgb val PR-AUC 0.099
+lightgbm              {'auc': 0.589, 'pr_auc': 0.074, 'base_rate': 0.055, 'events': 105, 'recall_30d': 0.124, 'median_lead_days': 24.0, 'false_alarms_per_well_year': 1.11, 'alarm_day_rate_healthy': 0.0239}
+lstm_autoencoder      {'auc': 0.554, 'pr_auc': 0.077, 'base_rate': 0.056, 'events': 105, 'recall_30d': 0.095, 'median_lead_days': 22.5, 'false_alarms_per_well_year': 0.38, 'alarm_day_rate_healthy': 0.0169}
+rule_amp_ratio_20pct  {'auc': 0.571, 'pr_auc': 0.078, 'base_rate': 0.053, 'events': 105, 'recall_30d': 0.152, 'median_lead_days': 20.5, 'false_alarms_per_well_year': 0.51, 'alarm_day_rate_healthy': 0.0112}
+top features:
+ CURRENT_z_mean7             0.151
+days_since_off              0.133
+card_rec_err                0.131
+CURRENT_z                   0.083
+AMP_RATIO_z_mean7           0.082
+AMP_RATIO_z_std7            0.058
+AMP_RATIO_z                 0.052
+card_extended_off           0.034
+CURRENT_z_std7              0.034
+card_speed_change_days30    0.034
+CURRENT_z_trend7            0.028
+card_recent_trip_days30     0.025
+AMP_RATIO_z_trend7          0.024
+off_frac30                  0.023
+card_erratic_days30         0.020
+tagged run: outputs in /home/rianr/pypro/myvenv/esp_forecasting/output/failure_clf_current; models not saved

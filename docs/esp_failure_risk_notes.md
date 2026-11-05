@@ -210,6 +210,8 @@ streamlit run risk_app.py          # 4. app (first load ~17 s, then cached)
 | Pump-off definition | `CURRENT_FLOOR` |
 | Baseline window | `BASE_LAG`, `BASE_REF` |
 | Alarm rule | `persist_k` / `persist_n` in the JSON, or `persist()` |
+| Feature-set ablation | `--features {all,current,current_runage}` (non-`all` needs `--tag`) |
+| Faster experiment runs | `--no_lstm` skips the LSTM-classifier comparison |
 
 ---
 
@@ -307,6 +309,60 @@ Reason: existing shutdown and current-deviation features already carry the same 
 Caveat: the card autoencoder is trained on all wells (unsupervised, no labels), not per fold.
 Comparison runs: `output/failure_clf_base/`, `output/failure_clf_ampcard/`.
 
+### Is the risk model "based on current"? Current-only ablation (2026-11-04)
+No. Grouping the full model's gain (`output/failure_clf/feature_importance.csv`):
+
+| Input group | Share of gain |
+|---|---|
+| Other sensors (intake/discharge pressure, intake/motor temp, vibration, frequency) | 43% |
+| Well tests (BFPD, BSW, GLR, PIP changes) | 20% |
+| Current direct (`CURRENT_*`, `AMP_RATIO_*`, `AMP_PER_HZ_*`) | 13% |
+| Run age | 10% |
+| Derived from current (pump-off / shutdown counts, amp-card classes) | 9% |
+| LSTM-AE overall score (all signals) | 4% |
+
+So current and everything built from it ≈ 23%; the top single feature is `run_age`.
+
+To measure what current alone can do, LightGBM was retrained (same params, folds, seed) on
+two reduced feature sets, selected with `--features` in `esp_failure_clf.py`:
+- `current` (34 features): `CURRENT_*`, `AMP_RATIO_*`, `off_*`, `days_since_off`, `card_*`
+  — what an amp-card reader sees. Excludes frequency-based `AMP_PER_HZ`, the multi-signal
+  LSTM-AE errors and the likely-cause flags (they use pressure, GLR, BSW, vibration).
+- `current_runage` (35): the above + `run_age`.
+
+| Model | Features | AUC | PR-AUC | Failures caught ≤30 d | Median lead | False alarms / well-year | Alarm-day rate (healthy) |
+|---|---|---|---|---|---|---|---|
+| Full model (app) | 91 | **0.653** | **0.130** | **22.9%** | 22 d | 0.91 | 4.0% |
+| Current + run age | 35 | 0.628 | 0.087 | 15.2% | 27.5 d | 0.75 | 2.7% |
+| Current only | 34 | 0.589 | 0.074 | 12.4% | 24 d | 1.11 | 2.4% |
+| Rule: current ±20% from baseline | 1 | 0.571 | 0.078 | 15.2% | 20.5 d | 0.51 | 1.1% |
+| Random | – | 0.50 | 0.055 | – | – | – | – |
+
+Findings:
+1. **Current alone carries little predictive signal** at daily resolution: AUC 0.59, PR-AUC
+   barely above the 0.055 base rate.
+2. **ML on current does not beat the simple ±20% amp-ratio rule** — the rule catches as many
+   failures with half the false alarms. Daily data leaves no extra current pattern to learn.
+3. **Run age is the biggest single addition** (AUC 0.59 → 0.63; 26% of gain in that model).
+4. **Other sensors and well tests carry the rest** — only the full model reaches PR-AUC 0.13.
+5. Top current-only features: `CURRENT_z_mean7` (15%), `days_since_off` (13%),
+   `card_rec_err` (13%).
+
+Caveat: alarm thresholds are set at the same healthy-day quantile (0.98), but after the
+3-of-5 persistence rule the alarm-day rates differ (4.0% vs 2.4%), so part of the recall gap
+is a different alarm budget. AUC / PR-AUC are threshold-free and agree.
+
+**Conclusion for the amp-card question:** with daily data, current-based (amp-card-style)
+analysis describes pump behaviour (normal, overload, cycling) but cannot predict failure on its
+own; prediction needs the other sensors, well tests and run age.
+
+Runs (models not saved; the app is unchanged):
+```bash
+python src/esp_failure_clf.py --features current --no_lstm --tag current
+python src/esp_failure_clf.py --features current_runage --no_lstm --tag current_runage
+```
+Outputs: `output/failure_clf_current/`, `output/failure_clf_current_runage/`.
+
 ---
 
 ## 8. Open questions / next steps
@@ -316,3 +372,7 @@ Comparison runs: `output/failure_clf_base/`, `output/failure_clf_ampcard/`.
 - ~~Add the amp-card class to the app; test it as LightGBM features~~ — done; no significant
   gain (see section 7). Decide whether to keep it in the model or revert with `--no_ampcard`.
 - Verify amp-card thresholds against API RP 11S / Takács and engineer-labelled examples.
+- ~~Test a current-only model~~ — done (section 7): AUC 0.59 vs 0.65 full; no better than the
+  ±20% amp-ratio rule. Current-based prediction needs higher-frequency data to be useful.
+- Calibrate the risk score (e.g. isotonic on out-of-fold predictions) so it reads as a
+  probability; currently `scale_pos_weight` inflates it.

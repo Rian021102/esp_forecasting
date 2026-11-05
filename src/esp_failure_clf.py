@@ -148,6 +148,23 @@ def ampcard_features(df, cards):
     return f
 
 
+# Feature sets for ablations (--features). "current" keeps only what an amp-card
+# reader sees: current itself, current vs its own baseline, pump-off/shutdown
+# history (current <= 20 A) and the amp-card classes. It leaves out frequency-based
+# AMP_PER_HZ, the multi-signal autoencoder errors and the likely-cause flags (those
+# use intake pressure, GLR, water cut and vibration).
+CURRENT_PREFIXES = ("CURRENT_", "AMP_RATIO_", "off_", "days_since_off", "card_")
+
+
+def select_features(cols, which):
+    if which == "all":
+        return list(cols)
+    keep = [c for c in cols if c.startswith(CURRENT_PREFIXES)]
+    if which == "current_runage":
+        keep.append("run_age")
+    return keep
+
+
 def prepare(raw, use_ampcard=None):
     """Raw well frame (wells_data_final.csv schema) -> prepared frame + features.
 
@@ -291,9 +308,15 @@ def main():
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--no_ampcard", action="store_true",
                     help="leave out the amp-card features (ablation)")
+    ap.add_argument("--features", choices=["all", "current", "current_runage"],
+                    default="all", help="feature set (ablation); non-default needs --tag")
+    ap.add_argument("--no_lstm", action="store_true",
+                    help="skip the LSTM classifier comparison (faster)")
     ap.add_argument("--tag", default="",
                     help="write outputs to output/failure_clf_<tag> and do not save models")
     args = ap.parse_args()
+    if args.features != "all" and not args.tag:
+        ap.error("--features other than 'all' must be run with --tag (the app expects all features)")
     out = OUT if not args.tag else OUT.parent / f"failure_clf_{args.tag}"
     device = "cuda" if torch.cuda.is_available() else "cpu"
     rng = np.random.default_rng(args.seed)
@@ -306,6 +329,7 @@ def main():
     F = add_ae_errors(df, build_features(df))
     if not args.no_ampcard:
         F = pd.concat([F, ampcard_features(df, ac.classify(raw)[0])], axis=1)
+    F = F[select_features(F.columns, args.features)]
     feats = list(F.columns)
     print(f"{len(df)} rows | labelled {int(df.Y.notna().sum())} "
           f"(pos {int(df.Y.sum())}) | {len(feats)} features | device={device}")
@@ -335,6 +359,11 @@ def main():
         df.loc[is_te, "THR_LGB"] = thr
         imps.append(pd.Series(clf.booster_.feature_importance("gain"), index=feats))
 
+        if args.no_lstm:
+            print(f"fold {k + 1}/{args.folds}: lgb val PR-AUC "
+                  f"{average_precision_score(df.loc[is_va, 'Y'], pva):.3f}")
+            continue
+
         # --- LSTM classifier
         Xtr, ytr_s, _ = seq_data(df, tr_w, args.seq, True)
         Xva, yva_s, _ = seq_data(df, va_w, args.seq, True)
@@ -360,10 +389,13 @@ def main():
     df["AMP_DEV"] = (ae.engineer(ae.load())["AMP_RATIO"] - 1).abs().to_numpy()
 
     metrics, evs = {}, []
-    for name, alarm, score in [("lightgbm", "LGB_ALARM", "P_LGB"),
-                               ("lstm_classifier", "LSTM_ALARM", "P_LSTM"),
-                               ("lstm_autoencoder", "AE_ALARM", "AE_SCORE"),
-                               ("rule_amp_ratio_20pct", "RULE_AMP_ALARM", "AMP_DEV")]:
+    methods = [("lightgbm", "LGB_ALARM", "P_LGB"),
+               ("lstm_classifier", "LSTM_ALARM", "P_LSTM"),
+               ("lstm_autoencoder", "AE_ALARM", "AE_SCORE"),
+               ("rule_amp_ratio_20pct", "RULE_AMP_ALARM", "AMP_DEV")]
+    if args.no_lstm:
+        methods.pop(1)
+    for name, alarm, score in methods:
         df[alarm] = df[alarm].astype("boolean").fillna(False).astype(bool)
         ev, m = ae.evaluate(df, alarm)
         m.pop("auc_score_1to30d_vs_healthy", None)
